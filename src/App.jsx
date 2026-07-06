@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   LineChart,
   Line,
@@ -10,7 +10,7 @@ import {
 } from 'recharts'
 import './App.css'
 
-const weightData = [
+const initialWeightData = [
   { date: '7/1', weight: 59.1 },
   { date: '7/2', weight: 58.9 },
   { date: '7/3', weight: 58.8 },
@@ -28,8 +28,21 @@ const calorieData = [
   { date: '7/6', calories: 1450 },
 ]
 
-    function App() {
+  function App() {
   const [page, setPage] = useState('dashboard')
+
+  const [weightData, setWeightData] = useState(() => {
+    const saved = localStorage.getItem('fitagent_weight_data')
+    return saved ? JSON.parse(saved) : initialWeightData
+  })
+
+  useEffect(() => {
+    localStorage.setItem('fitagent_weight_data', JSON.stringify(weightData))
+  }, [weightData])
+
+  const addWeightLog = (newLog) => {
+    setWeightData([...weightData, newLog])
+  }
 
   return (
     <div className="app">
@@ -42,15 +55,15 @@ const calorieData = [
       </aside>
 
       <main className="main">
-        {page === 'dashboard' && <Dashboard />}
+        {page === 'dashboard' && <Dashboard weightData={weightData} />}
         {page === 'meal' && <MealLog />}
-        {page === 'weight' && <WeightLog />}
+        {page === 'weight' && <WeightLog weightData={weightData} onAddWeight={addWeightLog} />}
       </main>
     </div>
   )
 }
 
-function Dashboard() {
+function Dashboard({ weightData }) {
   return (
     <section>
       <h2>今日概览</h2>
@@ -134,15 +147,49 @@ function MealLog() {
   )
 }
 
-function WeightLog() {
+function WeightLog({ weightData, onAddWeight }) {
+  const [date, setDate] = useState('')
+  const [weight, setWeight] = useState('')
+  const [note, setNote] = useState('')
+
+  const handleSubmit = () => {
+    if (!date || !weight) {
+      alert('请填写日期和体重')
+      return
+    }
+
+    onAddWeight({
+      date,
+      weight: Number(weight),
+      note,
+    })
+
+    setDate('')
+    setWeight('')
+    setNote('')
+  }
+
   return (
     <section>
       <h2>体重记录</h2>
+
       <div className="form">
-        <input placeholder="日期：2026-07-06" />
-        <input placeholder="今日体重：58.4 kg" />
-        <input placeholder="备注：今天运动后称重" />
-        <button className="primary">保存记录</button>
+        <input
+          value={date}
+          onChange={(event) => setDate(event.target.value)}
+          placeholder="日期：7/7"
+        />
+        <input
+          value={weight}
+          onChange={(event) => setWeight(event.target.value)}
+          placeholder="今日体重：58.3"
+        />
+        <input
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          placeholder="备注：今天早上空腹称重"
+        />
+        <button className="primary" onClick={handleSubmit}>保存记录</button>
       </div>
 
       <div className="panel">
@@ -166,6 +213,17 @@ function WeightLog() {
           </ResponsiveContainer>
         </div>
         <p>最近 7 天平均体重下降，趋势正常。单日波动可能与饮水、盐分和运动有关。</p>
+      </div>
+
+      <div className="panel">
+        <h3>历史记录</h3>
+        <ul>
+          {weightData.map((item, index) => (
+            <li key={index}>
+              {item.date}，{item.weight} kg {item.note ? `，${item.note}` : ''}
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )
