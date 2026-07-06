@@ -83,11 +83,43 @@ function Dashboard({ weightData, mealLogs }) {
   const todayCalories = mealLogs.reduce((sum, item) => sum + item.calories, 0)
   const latestWeight = weightData.length > 0 ? weightData[weightData.length - 1].weight : '--'
   const calorieChartData = mealLogs.length > 0
-  ? mealLogs.map((item) => ({
+    ? mealLogs.map((item) => ({
       date: item.date,
       calories: item.calories,
     }))
   : calorieData
+  const targetCalories = 1600
+  const latestWeightChange =
+    weightData.length >= 2
+      ? weightData[weightData.length - 1].weight - weightData[weightData.length - 2].weight
+      : 0
+  const hasProtein = mealLogs.some((item) =>
+    /鸡蛋|鸡胸肉|牛肉|鱼|虾|豆腐|豆浆|牛奶|酸奶/.test(item.rawText)
+  )
+  const hasHighCalorieFood = mealLogs.some((item) =>
+  /炸鸡|奶茶|汉堡|薯条|披萨|蛋糕|烧烤|火锅/.test(item.rawText)
+  )
+  let dailySuggestion = '今天还没有饮食记录，可以先记录一餐，系统会根据摄入和体重变化生成建议。'
+
+  if (todayCalories > 0) {
+    if (todayCalories > targetCalories + 200 || hasHighCalorieFood) {
+      dailySuggestion = '今天摄入热量偏高，建议晚餐减少高油高糖食物，优先选择蔬菜、优质蛋白和低脂主食。'
+    } else if (todayCalories < targetCalories - 300) {
+      dailySuggestion = '今天摄入热量偏低，减脂不建议长期过度节食。可以适当补充蛋白质和主食，避免影响代谢和训练状态。'
+    } else {
+      dailySuggestion = '今天热量控制比较稳定，建议继续保持，并关注 7 日体重趋势，不要被单日波动影响情绪。'
+    }
+
+    if (!hasProtein) {
+      dailySuggestion += ' 另外，今天记录中蛋白质来源不明显，可以增加鸡蛋、鱼肉、鸡胸肉、豆腐或低脂奶。'
+    }
+
+    if (latestWeightChange > 0.3) {
+      dailySuggestion += ' 今日体重略有上升，可能和水分、盐分、碳水摄入或称重时间有关，建议看长期趋势。'
+    } else if (latestWeightChange < -0.3) {
+      dailySuggestion += ' 今日体重下降较明显，注意不要因为短期下降就继续过度压低热量。'
+    }
+  }
   return (
     <section>
       <h2>今日概览</h2>
@@ -145,7 +177,7 @@ function Dashboard({ weightData, mealLogs }) {
 
       <div className="panel">
         <h3>AI 每日建议</h3>
-        <p>今天热量控制较好，但蛋白质摄入略低。建议晚餐增加鸡蛋、鱼肉、豆制品或低脂奶。</p>
+        <p>{dailySuggestion}</p>
       </div>
     </section>
   )
@@ -164,6 +196,12 @@ function MealLog({ mealLogs, onAddMeal }) {
       { keyword: '沙拉', calories: 180 },
       { keyword: '牛肉', calories: 300 },
       { keyword: '面包', calories: 220 },
+      { keyword: '炸鸡', calories: 650 },
+      { keyword: '奶茶', calories: 450 },
+      { keyword: '汉堡', calories: 500 },
+      { keyword: '薯条', calories: 350 },
+      { keyword: '披萨', calories: 600 },
+      { keyword: '蛋糕', calories: 400 },
     ]
 
     const total = rules.reduce((sum, item) => {
