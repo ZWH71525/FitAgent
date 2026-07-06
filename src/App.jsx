@@ -66,6 +66,11 @@ const deleteWeightLog = (indexToDelete) => {
   setWeightData(weightData.filter((_, index) => index !== indexToDelete))
 }
 
+  const resetDemoData = () => {
+    setWeightData(initialWeightData)
+    setMealLogs([])
+  }
+
   return (
     <div className="app">
       <aside className="sidebar">
@@ -74,6 +79,7 @@ const deleteWeightLog = (indexToDelete) => {
         <button onClick={() => setPage('dashboard')}>Dashboard</button>
         <button onClick={() => setPage('meal')}>饮食记录</button>
         <button onClick={() => setPage('weight')}>体重记录</button>
+        <button className="reset-button" onClick={resetDemoData}>  清空测试数据</button>
       </aside>
 
       <main className="main">
