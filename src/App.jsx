@@ -197,63 +197,61 @@ function Dashboard({ weightData, mealLogs }) {
 
 function MealLog({ mealLogs, onAddMeal, onDeleteMeal }) {
   const [mealText, setMealText] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const estimateCalories = (text) => {
-    const rules = [
-      { keyword: '鸡蛋', calories: 70 },
-      { keyword: '豆浆', calories: 80 },
-      { keyword: '拿铁', calories: 180 },
-      { keyword: '米饭', calories: 200 },
-      { keyword: '鸡胸肉', calories: 250 },
-      { keyword: '沙拉', calories: 180 },
-      { keyword: '牛肉', calories: 300 },
-      { keyword: '面包', calories: 220 },
-      { keyword: '炸鸡', calories: 650 },
-      { keyword: '奶茶', calories: 450 },
-      { keyword: '汉堡', calories: 500 },
-      { keyword: '薯条', calories: 350 },
-      { keyword: '披萨', calories: 600 },
-      { keyword: '蛋糕', calories: 400 },
-    ]
-
-    const total = rules.reduce((sum, item) => {
-      return text.includes(item.keyword) ? sum + item.calories : sum
-    }, 0)
-
-    return total || 300
-  }
-
-  const handleAnalyze = () => {
-    if (!mealText) {
+  const handleAnalyze = async () => {
+    if (!mealText.trim()) {
       alert('请先输入饮食内容')
       return
     }
-
-    const newLog = {
-      date: new Date().toLocaleDateString('zh-CN', {
-        month: 'numeric',
-        day: 'numeric',
-      }),
-      rawText: mealText,
-      calories: estimateCalories(mealText),
+    setLoading(true)
+    setError('')
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/analyze-meal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: mealText,
+        }),
+      })
+      if (!response.ok) {
+        throw new Error('后端接口请求失败')
+      }
+      const result = await response.json()
+      const newLog = {
+        date: new Date().toLocaleDateString('zh-CN', {
+          month: 'numeric',
+          day: 'numeric',
+        }),
+        rawText: result.raw_text,
+        calories: result.total_calories,
+        summary: result.summary,
+        matchedItems: result.matched_items,
+      }
+      onAddMeal(newLog)
+      setMealText('')
+    } catch (err) {
+      setError('饮食分析失败，请确认后端服务是否正在运行。')
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
-
-    onAddMeal(newLog)
-    setMealText('')
   }
-
   return (
     <section>
       <h2>饮食记录</h2>
-
       <textarea
         value={mealText}
         onChange={(event) => setMealText(event.target.value)}
         placeholder="例如：早餐吃了一个鸡蛋和一杯无糖豆浆，中午吃了一份鸡胸肉沙拉。"
       />
-
-      <button className="primary" onClick={handleAnalyze}>分析饮食</button>
-
+      <button className="primary" onClick={handleAnalyze} disabled={loading}>
+        {loading ? '分析中...' : '分析饮食'}
+      </button>
+      {error && <p className="error-text">{error}</p>}
       <div className="panel">
         <h3>饮食记录</h3>
         {mealLogs.length === 0 ? (
@@ -263,7 +261,22 @@ function MealLog({ mealLogs, onAddMeal, onDeleteMeal }) {
             {mealLogs.map((item, index) => (
               <li key={index} className="record-item">
                 <span>
-                  {item.date}：{item.rawText}，估算热量 {item.calories} kcal
+                  <strong>{item.date}</strong>：{item.rawText}
+                  <br />
+                  估算热量：{item.calories} kcal
+                  {item.summary && (
+                    <>
+                      <br />
+                      分析建议：{item.summary}
+                    </>
+                  )}
+                  {item.matchedItems && item.matchedItems.length > 0 && (
+                    <>
+                      <br />
+                      识别食物：
+                      {item.matchedItems.map((food) => food.keyword).join('、')}
+                    </>
+                  )}
                 </span>
                 <button className="delete-button" onClick={() => onDeleteMeal(index)}>
                   删除
