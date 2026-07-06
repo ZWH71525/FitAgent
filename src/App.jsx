@@ -81,6 +81,13 @@ const initialMealLogs = []
 
 function Dashboard({ weightData, mealLogs }) {
   const todayCalories = mealLogs.reduce((sum, item) => sum + item.calories, 0)
+  const latestWeight = weightData.length > 0 ? weightData[weightData.length - 1].weight : '--'
+  const calorieChartData = mealLogs.length > 0
+  ? mealLogs.map((item) => ({
+      date: item.date,
+      calories: item.calories,
+    }))
+  : calorieData
   return (
     <section>
       <h2>今日概览</h2>
@@ -88,7 +95,7 @@ function Dashboard({ weightData, mealLogs }) {
       <div className="cards">
         <div className="card"><span>今日摄入</span><strong>{todayCalories} kcal</strong></div>
         <div className="card"><span>目标摄入</span><strong>1600 kcal</strong></div>
-        <div className="card"><span>今日体重</span><strong>58.4 kg</strong></div>
+        <div className="card"><span>今日体重</span><strong>{latestWeight} kg</strong></div>
         <div className="card"><span>目标体重</span><strong>55.0 kg</strong></div>
       </div>
 
@@ -118,7 +125,7 @@ function Dashboard({ weightData, mealLogs }) {
         <h3>热量摄入趋势</h3>
         <div className="chart">
           <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={calorieData}>
+            <LineChart data={calorieChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis />
