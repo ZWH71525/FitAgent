@@ -28,6 +28,8 @@ const calorieData = [
   { date: '7/6', calories: 1450 },
 ]
 
+const initialMealLogs = []
+
   function App() {
   const [page, setPage] = useState('dashboard')
 
@@ -44,6 +46,20 @@ const calorieData = [
     setWeightData([...weightData, newLog])
   }
 
+  const [mealLogs, setMealLogs] = useState(() => {
+  const saved = localStorage.getItem('fitagent_meal_logs')
+  return saved ? JSON.parse(saved) : initialMealLogs
+  })
+
+  useEffect(() => {
+    localStorage.setItem('fitagent_meal_logs', JSON.stringify(mealLogs))
+  }, [mealLogs])
+
+  const addMealLog = (newLog) => {
+    setMealLogs([...mealLogs, newLog])
+  }
+
+
   return (
     <div className="app">
       <aside className="sidebar">
@@ -55,21 +71,22 @@ const calorieData = [
       </aside>
 
       <main className="main">
-        {page === 'dashboard' && <Dashboard weightData={weightData} />}
-        {page === 'meal' && <MealLog />}
+        {page === 'dashboard' && <Dashboard weightData={weightData} mealLogs={mealLogs} />}
+        {page === 'meal' && <MealLog mealLogs={mealLogs} onAddMeal={addMealLog} />}
         {page === 'weight' && <WeightLog weightData={weightData} onAddWeight={addWeightLog} />}
       </main>
     </div>
   )
 }
 
-function Dashboard({ weightData }) {
+function Dashboard({ weightData, mealLogs }) {
+  const todayCalories = mealLogs.reduce((sum, item) => sum + item.calories, 0)
   return (
     <section>
       <h2>今日概览</h2>
 
       <div className="cards">
-        <div className="card"><span>今日摄入</span><strong>1450 kcal</strong></div>
+        <div className="card"><span>今日摄入</span><strong>{todayCalories} kcal</strong></div>
         <div className="card"><span>目标摄入</span><strong>1600 kcal</strong></div>
         <div className="card"><span>今日体重</span><strong>58.4 kg</strong></div>
         <div className="card"><span>目标体重</span><strong>55.0 kg</strong></div>
@@ -127,21 +144,72 @@ function Dashboard({ weightData }) {
   )
 }
 
-function MealLog() {
+function MealLog({ mealLogs, onAddMeal }) {
+  const [mealText, setMealText] = useState('')
+
+  const estimateCalories = (text) => {
+    const rules = [
+      { keyword: '鸡蛋', calories: 70 },
+      { keyword: '豆浆', calories: 80 },
+      { keyword: '拿铁', calories: 180 },
+      { keyword: '米饭', calories: 200 },
+      { keyword: '鸡胸肉', calories: 250 },
+      { keyword: '沙拉', calories: 180 },
+      { keyword: '牛肉', calories: 300 },
+      { keyword: '面包', calories: 220 },
+    ]
+
+    const total = rules.reduce((sum, item) => {
+      return text.includes(item.keyword) ? sum + item.calories : sum
+    }, 0)
+
+    return total || 300
+  }
+
+  const handleAnalyze = () => {
+    if (!mealText) {
+      alert('请先输入饮食内容')
+      return
+    }
+
+    const newLog = {
+      date: new Date().toLocaleDateString('zh-CN', {
+        month: 'numeric',
+        day: 'numeric',
+      }),
+      rawText: mealText,
+      calories: estimateCalories(mealText),
+    }
+
+    onAddMeal(newLog)
+    setMealText('')
+  }
+
   return (
     <section>
       <h2>饮食记录</h2>
-      <textarea placeholder="例如：早餐吃了一个鸡蛋和一杯无糖豆浆，中午吃了一份鸡胸肉沙拉。" />
-      <button className="primary">分析饮食</button>
+
+      <textarea
+        value={mealText}
+        onChange={(event) => setMealText(event.target.value)}
+        placeholder="例如：早餐吃了一个鸡蛋和一杯无糖豆浆，中午吃了一份鸡胸肉沙拉。"
+      />
+
+      <button className="primary" onClick={handleAnalyze}>分析饮食</button>
 
       <div className="panel">
-        <h3>AI 解析结果</h3>
-        <ul>
-          <li>鸡蛋，1 个，约 70 kcal</li>
-          <li>无糖豆浆，1 杯，约 80 kcal</li>
-          <li>鸡胸肉沙拉，1 份，约 350 kcal</li>
-        </ul>
-        <strong>总热量：500 kcal</strong>
+        <h3>饮食记录</h3>
+        {mealLogs.length === 0 ? (
+          <p>还没有饮食记录，先输入一条试试。</p>
+        ) : (
+          <ul>
+            {mealLogs.map((item, index) => (
+              <li key={index}>
+                {item.date}：{item.rawText}，估算热量 {item.calories} kcal
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   )
