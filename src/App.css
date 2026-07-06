@@ -111,3 +111,7 @@ textarea {
   cursor: pointer;
   margin-bottom: 20px;
 }
+
+.record-item {  display: flex;  justify-content: space-between;  align-items: center;  gap: 12px;  padding: 10px 0;  border-bottom: 1px solid #e5e7eb;}
+.delete-button {  padding: 6px 10px;  border: 0;  border-radius: 6px;  background: #fee2e2;  color: #b91c1c;  cursor: pointer;}
+.delete-button:hover {  background: #fecaca;}

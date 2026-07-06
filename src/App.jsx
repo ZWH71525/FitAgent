@@ -58,7 +58,13 @@ const initialMealLogs = []
   const addMealLog = (newLog) => {
     setMealLogs([...mealLogs, newLog])
   }
+  const deleteMealLog = (indexToDelete) => {
+  setMealLogs(mealLogs.filter((_, index) => index !== indexToDelete))
+  }
 
+const deleteWeightLog = (indexToDelete) => {
+  setWeightData(weightData.filter((_, index) => index !== indexToDelete))
+}
 
   return (
     <div className="app">
@@ -72,8 +78,8 @@ const initialMealLogs = []
 
       <main className="main">
         {page === 'dashboard' && <Dashboard weightData={weightData} mealLogs={mealLogs} />}
-        {page === 'meal' && <MealLog mealLogs={mealLogs} onAddMeal={addMealLog} />}
-        {page === 'weight' && <WeightLog weightData={weightData} onAddWeight={addWeightLog} />}
+        {page === 'meal' && <MealLog mealLogs={mealLogs} onAddMeal={addMealLog} onDeleteMeal={deleteMealLog} />}
+        {page === 'weight' && <WeightLog weightData={weightData} onAddWeight={addWeightLog} onDeleteWeight={deleteWeightLog}/>}
       </main>
     </div>
   )
@@ -183,7 +189,7 @@ function Dashboard({ weightData, mealLogs }) {
   )
 }
 
-function MealLog({ mealLogs, onAddMeal }) {
+function MealLog({ mealLogs, onAddMeal, onDeleteMeal }) {
   const [mealText, setMealText] = useState('')
 
   const estimateCalories = (text) => {
@@ -249,8 +255,13 @@ function MealLog({ mealLogs, onAddMeal }) {
         ) : (
           <ul>
             {mealLogs.map((item, index) => (
-              <li key={index}>
-                {item.date}：{item.rawText}，估算热量 {item.calories} kcal
+              <li key={index} className="record-item">
+                <span>
+                  {item.date}：{item.rawText}，估算热量 {item.calories} kcal
+                </span>
+                <button className="delete-button" onClick={() => onDeleteMeal(index)}>
+                  删除
+                </button>
               </li>
             ))}
           </ul>
@@ -260,7 +271,7 @@ function MealLog({ mealLogs, onAddMeal }) {
   )
 }
 
-function WeightLog({ weightData, onAddWeight }) {
+function WeightLog({ weightData, onAddWeight, onDeleteWeight }) {
   const [date, setDate] = useState('')
   const [weight, setWeight] = useState('')
   const [note, setNote] = useState('')
@@ -332,8 +343,13 @@ function WeightLog({ weightData, onAddWeight }) {
         <h3>历史记录</h3>
         <ul>
           {weightData.map((item, index) => (
-            <li key={index}>
-              {item.date}，{item.weight} kg {item.note ? `，${item.note}` : ''}
+            <li key={index} className="record-item">
+              <span>
+                {item.date}，{item.weight} kg {item.note ? `，${item.note}` : ''}
+              </span>
+              <button className="delete-button" onClick={() => onDeleteWeight(index)}>
+                删除
+              </button>
             </li>
           ))}
         </ul>
