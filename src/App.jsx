@@ -1,7 +1,34 @@
 import { useState } from 'react'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from 'recharts'
 import './App.css'
 
-function App() {
+const weightData = [
+  { date: '7/1', weight: 59.1 },
+  { date: '7/2', weight: 58.9 },
+  { date: '7/3', weight: 58.8 },
+  { date: '7/4', weight: 58.7 },
+  { date: '7/5', weight: 58.6 },
+  { date: '7/6', weight: 58.4 },
+]
+
+const calorieData = [
+  { date: '7/1', calories: 1680 },
+  { date: '7/2', calories: 1520 },
+  { date: '7/3', calories: 1610 },
+  { date: '7/4', calories: 1480 },
+  { date: '7/5', calories: 1550 },
+  { date: '7/6', calories: 1450 },
+]
+
+    function App() {
   const [page, setPage] = useState('dashboard')
 
   return (
@@ -27,6 +54,7 @@ function Dashboard() {
   return (
     <section>
       <h2>今日概览</h2>
+
       <div className="cards">
         <div className="card"><span>今日摄入</span><strong>1450 kcal</strong></div>
         <div className="card"><span>目标摄入</span><strong>1600 kcal</strong></div>
@@ -36,7 +64,46 @@ function Dashboard() {
 
       <div className="panel">
         <h3>体重趋势</h3>
-        <div className="chart">58.9 → 58.7 → 58.6 → 58.4 kg</div>
+        <div className="chart">
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={weightData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis domain={['dataMin - 0.3', 'dataMax + 0.3']} />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="weight"
+                name="体重 kg"
+                stroke="#2563eb"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="panel">
+        <h3>热量摄入趋势</h3>
+        <div className="chart">
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={calorieData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="calories"
+                name="摄入热量 kcal"
+                stroke="#16a34a"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <div className="panel">
@@ -80,7 +147,24 @@ function WeightLog() {
 
       <div className="panel">
         <h3>最近体重趋势</h3>
-        <div className="chart">59.1 → 58.9 → 58.7 → 58.6 → 58.4 kg</div>
+        <div className="chart">
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={weightData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis domain={['dataMin - 0.3', 'dataMax + 0.3']} />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="weight"
+                name="体重 kg"
+                stroke="#2563eb"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
         <p>最近 7 天平均体重下降，趋势正常。单日波动可能与饮水、盐分和运动有关。</p>
       </div>
     </section>
