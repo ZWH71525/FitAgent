@@ -10,6 +10,8 @@ import {
 } from 'recharts'
 import './App.css'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+
 const initialWeightData = [
   { date: '7/1', weight: 59.1 },
   { date: '7/2', weight: 58.9 },
@@ -208,7 +210,7 @@ function MealLog({ mealLogs, onAddMeal, onDeleteMeal }) {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/analyze-meal', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze-meal`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
