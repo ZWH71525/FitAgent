@@ -245,7 +245,6 @@ function MealLog({ mealLogs, onAddMeal, onDeleteMeal }) {
   return (
     <section>
       <h2>饮食记录</h2>
-      <p className="api-debug">当前 API 地址：{API_BASE_URL}</p>
       <textarea
         value={mealText}
         onChange={(event) => setMealText(event.target.value)}

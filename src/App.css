@@ -119,4 +119,3 @@ textarea {
 .reset-button {  margin-top: 24px;  background: #7f1d1d !important;}
 .reset-button:hover {  background: #991b1b !important;}
 .error-text {  color: #b91c1c;  background: #fee2e2;  padding: 10px 12px;  border-radius: 8px;  margin-bottom: 16px;}
-.api-debug {  color: #6b7280;  font-size: 13px;}
