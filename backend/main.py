@@ -15,11 +15,9 @@ app = FastAPI(title="FitAgent API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:5175",
         "https://eloquent-klepon-56c57f.netlify.app",
     ],
+    allow_origin_regex=r"^http://(localhost|127\.0\.0\.1):\d+$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -134,6 +132,8 @@ def analyze_with_llm(text: str) -> dict | None:
     api_key = os.getenv("LLM_API_KEY")
     api_url = os.getenv("LLM_API_URL")
     model = os.getenv("LLM_MODEL", "deepseek-v4-flash")
+    print("LLM_API_KEY loaded:", bool(api_key))
+    print("LLM_API_URL loaded:", api_url)
     if not api_key or not api_url:
         return None
 

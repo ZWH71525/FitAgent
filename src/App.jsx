@@ -231,7 +231,8 @@ function MealLog({ mealLogs, onAddMeal, onDeleteMeal }) {
         rawText: result.raw_text,
         calories: result.total_calories,
         summary: result.summary,
-        matchedItems: result.matched_items,
+        matchedItems: result.matched_items || [],
+        source: result.source,
       }
       onAddMeal(newLog)
       setMealText('')
@@ -262,24 +263,24 @@ function MealLog({ mealLogs, onAddMeal, onDeleteMeal }) {
           <ul>
             {mealLogs.map((item, index) => (
               <li key={index} className="record-item">
-                <span>
+                <div className="record-content">
                   <strong>{item.date}</strong>：{item.rawText}
                   <br />
                   估算热量：{item.calories} kcal
+                  {item.source && (
+                    <>
+                      <br />
+                      分析来源：{item.source}
+                    </>
+                  )}
                   {item.summary && (
                     <>
                       <br />
                       分析建议：{item.summary}
                     </>
                   )}
-                  {item.matchedItems && item.matchedItems.length > 0 && (
-                    <>
-                      <br />
-                      识别食物：
-                      {item.matchedItems.map((food) => food.keyword).join('、')}
-                    </>
-                  )}
-                </span>
+                  <FoodNutritionTable items={item.matchedItems} />
+                </div>
                 <button className="delete-button" onClick={() => onDeleteMeal(index)}>
                   删除
                 </button>
@@ -289,6 +290,50 @@ function MealLog({ mealLogs, onAddMeal, onDeleteMeal }) {
         )}
       </div>
     </section>
+  )
+}
+
+function FoodNutritionTable({ items }) {
+  if (!items || items.length === 0) {
+    return null
+  }
+
+  const totalProtein = items.reduce((sum, item) => sum + Number(item.protein || 0), 0)
+  const totalCarbs = items.reduce((sum, item) => sum + Number(item.carbs || 0), 0)
+  const totalFat = items.reduce((sum, item) => sum + Number(item.fat || 0), 0)
+
+  return (
+    <div className="nutrition-table-wrapper">
+      <table className="nutrition-table">
+        <thead>
+          <tr>
+            <th>食物</th>
+            <th>份量</th>
+            <th>热量</th>
+            <th>蛋白质</th>
+            <th>碳水</th>
+            <th>脂肪</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((food, index) => (
+            <tr key={index}>
+              <td>{food.keyword || food.name || '未知食物'}</td>
+              <td>{food.amount || '-'}</td>
+              <td>{food.calories ?? 0} kcal</td>
+              <td>{food.protein ?? 0} g</td>
+              <td>{food.carbs ?? 0} g</td>
+              <td>{food.fat ?? 0} g</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="macro-summary">
+        <span>蛋白质合计：{totalProtein.toFixed(1)} g</span>
+        <span>碳水合计：{totalCarbs.toFixed(1)} g</span>
+        <span>脂肪合计：{totalFat.toFixed(1)} g</span>
+      </div>
+    </div>
   )
 }
 

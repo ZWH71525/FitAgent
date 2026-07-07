@@ -26,6 +26,7 @@ backend/.env
 *.sw?
 
 # Python local files
+backend/.env/
 backend/.venv/
 backend/__pycache__/
 __pycache__/
